@@ -3,11 +3,13 @@ from fastapi.middleware.cors import CORSMiddleware
 from pydantic import BaseModel
 from typing import List
 import joblib
-import shap
 import numpy as np
 import os
+import random
 
 from config import MODEL_DIR
+from database import engine, SessionLocal
+from models_db import Base, Prediction
 
 app = FastAPI()
 
@@ -50,23 +52,26 @@ class DayData(BaseModel):
 
 class PredictionInput(BaseModel):
     zone_id: str
-    history: List[DayData]   # Must contain 3 days
+    history: List[DayData]
 
 
 # =========================
-# LOAD MODELS ON STARTUP
+# LOAD MODELS + CREATE TABLES
 # =========================
 models = {}
 
 @app.on_event("startup")
-def load_models():
+def startup_event():
     for h in [1, 3, 7]:
         models[f"air_{h}"] = joblib.load(os.path.join(MODEL_DIR, f"air_risk_t{h}.pkl"))
         models[f"water_{h}"] = joblib.load(os.path.join(MODEL_DIR, f"water_risk_t{h}.pkl"))
         models[f"urban_{h}"] = joblib.load(os.path.join(MODEL_DIR, f"urban_risk_t{h}.pkl"))
 
+    Base.metadata.create_all(bind=engine)
+
+
 # =========================
-# BUILD LAG FEATURES
+# FEATURE BUILDER
 # =========================
 def build_features(history):
 
@@ -103,34 +108,142 @@ def build_features(history):
 
     return np.array([air]), np.array([water]), np.array([urban])
 
+
 # =========================
-# PREDICT
+# CORE PREDICTION LOGIC
+# =========================
+def run_prediction(zone_id, history):
+
+    X_air, X_water, X_urban = build_features(history)
+
+    db = SessionLocal()
+    results = []
+
+    try:
+        for h in [1, 3, 7]:
+
+            air = models[f"air_{h}"].predict(X_air)[0]
+            water = models[f"water_{h}"].predict(X_water)[0]
+            urban = models[f"urban_{h}"].predict(X_urban)[0]
+
+            final = 0.4 * air + 0.3 * water + 0.3 * urban
+
+            # 🔥 Simulated actual using random noise
+            noise = random.uniform(-5, 5)
+            actual = final + noise
+            error = actual - final
+            absolute_error = abs(error)
+
+            record = Prediction(
+                zone_id=zone_id,
+                horizon_days=h,
+                predicted_air=float(air),
+                predicted_water=float(water),
+                predicted_urban=float(urban),
+                predicted_final=float(final),
+                actual_final=float(actual),
+                error=float(error),
+                absolute_error=float(absolute_error)
+            )
+
+            db.add(record)
+
+            results.append({
+                "zone_id": zone_id,
+                "horizon_days": h,
+                "predicted_final": float(final),
+                "actual_final": float(actual),
+                "error": float(error)
+            })
+
+        db.commit()
+
+    finally:
+        db.close()
+
+    return results
+
+
+# =========================
+# MANUAL MODE
 # =========================
 @app.post("/predict")
 def predict(data: PredictionInput):
+    return run_prediction(data.zone_id, data.history)
 
-    X_air, X_water, X_urban = build_features(data.history)
 
-    output = []
+# =========================
+# AUTO MODE (DEMO SIMULATION)
+# Generates dummy 3-day history for 10 zones
+# =========================
+@app.post("/predict-all-auto")
+def predict_all_auto():
 
-    for h in [1,3,7]:
+    zones = [f"Zone_{i}" for i in range(1, 11)]
+    all_results = []
 
-        air = models[f"air_{h}"].predict(X_air)[0]
-        water = models[f"water_{h}"].predict(X_water)[0]
-        urban = models[f"urban_{h}"].predict(X_urban)[0]
+    for zone in zones:
 
-        final = 0.4*air + 0.3*water + 0.3*urban
+        history = []
+        for _ in range(3):
+            history.append(
+                DayData(
+                    pm25=random.uniform(100, 200),
+                    pm10=random.uniform(200, 300),
+                    no2=random.uniform(30, 60),
+                    humidity=random.uniform(40, 80),
+                    wind_speed=random.uniform(2, 10),
+                    rainfall_last_3_days=random.uniform(0, 20),
+                    water_quality_index=random.uniform(50, 90),
+                    reservoir_level=random.uniform(60, 100),
+                    drainage_quality_index=random.uniform(50, 80),
+                    violations_last_7_days=random.uniform(5, 20),
+                    avg_violation_severity=random.uniform(1, 5),
+                    repeat_offender_rate=random.uniform(0.1, 0.5),
+                    population_density=random.uniform(10000, 15000),
+                    industrial_density=random.uniform(20, 60),
+                    green_cover_percentage=random.uniform(10, 40),
+                    social_vulnerability_index=random.uniform(0.2, 0.8),
+                    risk_score=random.uniform(50, 90)
+                )
+            )
 
-        output.append({
-            "zone_id": data.zone_id,
-            "horizon_days": h,
-            "air_risk": float(air),
-            "water_risk": float(water),
-            "urban_risk": float(urban),
-            "final_risk": float(final)
-        })
+        result = run_prediction(zone, history)
+        all_results.extend(result)
 
-    return output
+    return all_results
+
+
+# =========================
+# HISTORY FOR GRAPHS
+# =========================
+@app.get("/history/{zone_id}")
+def get_history(zone_id: str):
+
+    db = SessionLocal()
+
+    try:
+        records = db.query(Prediction)\
+                    .filter(Prediction.zone_id == zone_id)\
+                    .order_by(Prediction.created_at.desc())\
+                    .limit(30)\
+                    .all()
+
+        return [
+            {
+                "horizon_days": r.horizon_days,
+                "predicted_final": r.predicted_final,
+                "actual_final": r.actual_final,
+                "error": r.error,
+                "absolute_error": r.absolute_error,
+                "created_at": r.created_at
+            }
+            for r in records
+        ]
+
+    finally:
+        db.close()
+
 
 # =========================
 # SYSTEM METRICS
@@ -141,35 +254,5 @@ def system_metrics():
         "active_zones": 10,
         "model_confidence": 97,
         "forecast_range": "D+1 to D+7",
-        "status": "production"
-    }
-
-# =========================
-# SHAP EXPLAIN (AIR EXAMPLE)
-# =========================
-@app.post("/air-explain")
-def air_explain(data: PredictionInput):
-
-    X_air, _, _ = build_features(data.history)
-    model = models["air_1"]
-
-    # Get prediction
-    prediction = model.predict(X_air)[0]
-
-    # Get feature importance
-    importances = model.feature_importances_
-
-    # Normalize importances
-    if importances.sum() != 0:
-        normalized = importances / importances.sum()
-    else:
-        normalized = importances
-
-    # Create signed contributions
-    contributions = (normalized * prediction).tolist()
-
-    return {
-        "zone_id": data.zone_id,
-        "prediction": float(prediction),
-        "feature_contributions": contributions
+        "mode": "demo_simulation"
     }
