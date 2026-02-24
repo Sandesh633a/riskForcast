@@ -153,13 +153,23 @@ def air_explain(data: PredictionInput):
     X_air, _, _ = build_features(data.history)
     model = models["air_1"]
 
-    try:
-        explainer = shap.TreeExplainer(model)
-        shap_values = explainer.shap_values(X_air)
-    except:
-        shap_values = np.zeros_like(X_air)
+    # Get prediction
+    prediction = model.predict(X_air)[0]
+
+    # Get feature importance
+    importances = model.feature_importances_
+
+    # Normalize importances
+    if importances.sum() != 0:
+        normalized = importances / importances.sum()
+    else:
+        normalized = importances
+
+    # Create signed contributions
+    contributions = (normalized * prediction).tolist()
 
     return {
         "zone_id": data.zone_id,
-        "feature_contributions": shap_values[0].tolist()
+        "prediction": float(prediction),
+        "feature_contributions": contributions
     }
