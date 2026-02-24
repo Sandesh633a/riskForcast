@@ -67,8 +67,8 @@ def startup_event():
         models[f"water_{h}"] = joblib.load(os.path.join(MODEL_DIR, f"water_risk_t{h}.pkl"))
         models[f"urban_{h}"] = joblib.load(os.path.join(MODEL_DIR, f"urban_risk_t{h}.pkl"))
 
+    Base.metadata.drop_all(bind=engine)
     Base.metadata.create_all(bind=engine)
-
 
 # =========================
 # FEATURE BUILDER
