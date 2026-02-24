@@ -1,0 +1,22 @@
+# Python
+__pycache__/
+*.pyc
+
+# Node
+node_modules/
+
+# Logs
+logs/
+
+# Environment
+.env
+
+# React build
+frontend/dist/
+
+# Ignore accidental root models
+/models/
+
+# But allow backend models
+!codes/models/
+!codes/models/*.pkl

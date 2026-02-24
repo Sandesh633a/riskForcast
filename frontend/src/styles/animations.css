@@ -1,0 +1,238 @@
+/* ─────────────────────────────────────────────────────
+   Layered Intelligence Platform — Animation System
+   ───────────────────────────────────────────────────── */
+
+/* ── Hero mesh gradient drift ── */
+@keyframes meshDrift {
+    0% {
+        transform: translate(0, 0) scale(1);
+    }
+
+    33% {
+        transform: translate(3%, -2%) scale(1.02);
+    }
+
+    66% {
+        transform: translate(-2%, 3%) scale(0.98);
+    }
+
+    100% {
+        transform: translate(1%, -1%) scale(1.01);
+    }
+}
+
+/* ── Subtle light leak ── */
+@keyframes lightLeak {
+    0% {
+        opacity: 0.2;
+        transform: translate(0, 0);
+    }
+
+    100% {
+        opacity: 0.6;
+        transform: translate(-5%, 5%);
+    }
+}
+
+/* ── Radar sweep rotation ── */
+@keyframes radarSweep {
+    from {
+        transform: rotate(0deg);
+    }
+
+    to {
+        transform: rotate(360deg);
+    }
+}
+
+/* ── Anomaly blip pulse ── */
+@keyframes anomalyPulse {
+
+    0%,
+    100% {
+        opacity: 0.6;
+        transform: scale(1);
+    }
+
+    50% {
+        opacity: 1;
+        transform: scale(1.1);
+    }
+}
+
+/* ── Zone blip on radar ── */
+@keyframes zoneBlip {
+
+    0%,
+    100% {
+        r: 5;
+        opacity: 0.8;
+    }
+
+    50% {
+        r: 8;
+        opacity: 1;
+    }
+}
+
+/* ── Ripple from anomaly ── */
+@keyframes ripple {
+    0% {
+        r: 8;
+        opacity: 0.5;
+    }
+
+    100% {
+        r: 24;
+        opacity: 0;
+    }
+}
+
+/* ── Core rotation ── */
+@keyframes coreRotate {
+    from {
+        transform: rotate(0deg);
+    }
+
+    to {
+        transform: rotate(360deg);
+    }
+}
+
+/* ── Particle float ── */
+@keyframes particleFloat {
+    0% {
+        transform: translateY(100vh) scale(0);
+        opacity: 0;
+    }
+
+    10% {
+        opacity: 1;
+    }
+
+    90% {
+        opacity: 1;
+    }
+
+    100% {
+        transform: translateY(-10vh) scale(1);
+        opacity: 0;
+    }
+}
+
+/* ── Glow pulse ── */
+@keyframes glowPulse {
+
+    0%,
+    100% {
+        box-shadow: 0 0 10px rgba(0, 200, 150, 0.15);
+    }
+
+    50% {
+        box-shadow: 0 0 30px rgba(0, 200, 150, 0.35);
+    }
+}
+
+/* ── Scale-in entrance ── */
+@keyframes scaleIn {
+    from {
+        transform: scale(0.92);
+        opacity: 0;
+    }
+
+    to {
+        transform: scale(1);
+        opacity: 1;
+    }
+}
+
+/* ── Slide-in from right ── */
+@keyframes slideInRight {
+    from {
+        transform: translateX(100%);
+    }
+
+    to {
+        transform: translateX(0);
+    }
+}
+
+/* ── Slide-out to right ── */
+@keyframes slideOutRight {
+    from {
+        transform: translateX(0);
+    }
+
+    to {
+        transform: translateX(100%);
+    }
+}
+
+/* ── Fade-in up ── */
+@keyframes fadeInUp {
+    from {
+        opacity: 0;
+        transform: translateY(20px);
+    }
+
+    to {
+        opacity: 1;
+        transform: translateY(0);
+    }
+}
+
+/* ── Breathing ring ── */
+@keyframes breathe {
+
+    0%,
+    100% {
+        transform: scale(1);
+        opacity: 0.6;
+    }
+
+    50% {
+        transform: scale(1.05);
+        opacity: 1;
+    }
+}
+
+/* ── Utility classes ── */
+.animate-mesh-drift {
+    animation: meshDrift 20s ease-in-out infinite alternate;
+}
+
+.animate-light-leak {
+    animation: lightLeak 15s ease-in-out infinite alternate;
+}
+
+.animate-radar-sweep {
+    animation: radarSweep 4s linear infinite;
+}
+
+.animate-anomaly {
+    animation: anomalyPulse 2s ease-in-out infinite;
+}
+
+.animate-glow-pulse {
+    animation: glowPulse 3s ease-in-out infinite;
+}
+
+.animate-breathe {
+    animation: breathe 3s ease-in-out infinite;
+}
+
+.animate-scale-in {
+    animation: scaleIn 0.4s cubic-bezier(0.4, 0, 0.2, 1) forwards;
+}
+
+.animate-slide-in {
+    animation: slideInRight 0.35s cubic-bezier(0.4, 0, 0.2, 1) forwards;
+}
+
+.animate-slide-out {
+    animation: slideOutRight 0.3s cubic-bezier(0.4, 0, 0.2, 1) forwards;
+}
+
+.animate-fade-in-up {
+    animation: fadeInUp 0.5s cubic-bezier(0.4, 0, 0.2, 1) forwards;
+}
