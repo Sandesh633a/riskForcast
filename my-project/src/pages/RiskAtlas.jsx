@@ -71,10 +71,11 @@ function ZonePanel({ zone, summary, loading, onClose }) {
     const color = getRiskColor(zone.risk_score);
     const label = getRiskLabel(zone.risk_score);
 
+    const getPredVal = (p) => typeof p === 'object' && p !== null ? (p.final || 0) : (p || 0);
     const forecastData = summary ? [
-        { horizon: 'D+1', risk: summary.predictions['1'] || 0 },
-        { horizon: 'D+3', risk: summary.predictions['3'] || 0 },
-        { horizon: 'D+7', risk: summary.predictions['7'] || 0 },
+        { horizon: 'D+1', risk: getPredVal(summary.predictions['1']) },
+        { horizon: 'D+3', risk: getPredVal(summary.predictions['3']) },
+        { horizon: 'D+7', risk: getPredVal(summary.predictions['7']) },
     ] : [];
 
     // Simulated risk dimension breakdown based on zone score
@@ -211,15 +212,18 @@ function ZonePanel({ zone, summary, loading, onClose }) {
                         <div className="rounded-xl p-4 border border-white/[0.06] bg-gradient-to-br from-[#111318] to-[#0d0f13]">
                             <div className="text-[10px] text-[#6a7080] uppercase font-black tracking-wider mb-3">Prediction Details</div>
                             <div className="space-y-2">
-                                {Object.entries(summary.predictions).map(([h, val]) => (
-                                    <div key={h} className="flex items-center justify-between px-3 py-2 rounded-lg bg-white/[0.02] border border-white/[0.04]">
-                                        <span className="text-[12px] text-[#8a8f9d] font-medium flex items-center gap-2">
-                                            <LuChevronRight size={12} style={{ color: getRiskColor(val) }} />
-                                            D+{h}
-                                        </span>
-                                        <span className="text-[14px] font-black font-mono" style={{ color: getRiskColor(val) }}>{val.toFixed(2)}</span>
-                                    </div>
-                                ))}
+                                {Object.entries(summary.predictions).map(([h, raw]) => {
+                                    const val = typeof raw === 'object' && raw !== null ? (raw.final || 0) : (raw || 0);
+                                    return (
+                                        <div key={h} className="flex items-center justify-between px-3 py-2 rounded-lg bg-white/[0.02] border border-white/[0.04]">
+                                            <span className="text-[12px] text-[#8a8f9d] font-medium flex items-center gap-2">
+                                                <LuChevronRight size={12} style={{ color: getRiskColor(val) }} />
+                                                D+{h}
+                                            </span>
+                                            <span className="text-[14px] font-black font-mono" style={{ color: getRiskColor(val) }}>{val.toFixed(2)}</span>
+                                        </div>
+                                    );
+                                })}
                             </div>
                         </div>
                     </>
