@@ -1,22 +1,91 @@
-# Python
+# # Python
+# __pycache__/
+# *.pyc
+
+# # Node
+# node_modules/
+
+# # Logs
+# logs/
+
+# # Environment
+# .env
+
+# # React build
+# frontend/dist/
+
+# # Ignore accidental root models
+# /models/
+
+# # But allow backend models
+# !codes/models/
+# !codes/models/*.pkl
+
+
+
+
+
+
+
+
+
+
+
+
+
+# =========================
+# PYTHON
+# =========================
 __pycache__/
 *.pyc
+*.pyo
+*.pyd
 
-# Node
+# Virtual environments
+venv/
+env/
+.venv/
+
+# =========================
+# NODE / REACT
+# =========================
 node_modules/
+my-project/node_modules/
 
-# Logs
+# React build output (Vite)
+my-project/dist/
+
+# =========================
+# LOGS
+# =========================
 logs/
+codes/logs/
 
-# Environment
+# =========================
+# ENVIRONMENT FILES
+# =========================
 .env
+codes/.env
+my-project/.env
 
-# React build
-frontend/dist/
-
-# Ignore accidental root models
+# =========================
+# MODELS
+# =========================
+# Ignore accidental root models folder
 /models/
 
-# But allow backend models
+# Allow backend trained models
 !codes/models/
 !codes/models/*.pkl
+
+# =========================
+# OS FILES
+# =========================
+.DS_Store
+Thumbs.db
+
+# =========================
+# IDE
+# =========================
+.vscode/
+.idea/
