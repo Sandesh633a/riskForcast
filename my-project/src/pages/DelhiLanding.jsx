@@ -191,13 +191,12 @@ export default function DelhiLanding() {
                 {/* Video — more visible now */}
                 <video ref={videoRef} autoPlay muted loop playsInline
                     className="absolute inset-0 w-full h-full object-cover"
-                    style={{ filter: 'brightness(0.45) saturate(1.1) contrast(1.15)', transform: `scale(1.08) translateY(${scrollY * 0.12}px)` }}>
+                    style={{ filter: 'brightness(1) saturate(1.1) contrast(1.15)', transform: `scale(1.08) translateY(${scrollY * 0.12}px)` }}>
                     <source src="/videos/delhi-hero.mp4" type="video/mp4" />
                 </video>
 
                 {/* Lighter overlays — video shows through */}
-                <div className="absolute inset-0 bg-gradient-to-b from-[#08090c]/60 via-transparent to-[#08090c]/90"></div>
-                <div className="absolute inset-0 bg-[radial-gradient(ellipse_80%_60%_at_50%_40%,transparent_40%,#08090c_100%)]"></div>
+                <div className="absolute inset-0 bg-gradient-to-b from-[#08090c]/30 via-transparent to-[#08090c]/80"></div>
 
                 {/* Scan-line texture for cinematic feel */}
                 <div className="absolute inset-0 opacity-[0.015]" style={{ backgroundImage: 'repeating-linear-gradient(0deg, transparent, transparent 2px, rgba(255,255,255,0.05) 2px, rgba(255,255,255,0.05) 4px)' }}></div>
